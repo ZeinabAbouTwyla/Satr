@@ -44,7 +44,7 @@ window.PAGE_INIT=function(){
   const listHtml=fl.map(x=>{
     const r=A.prog.get(c.id,x.flat), open=A.isUnlocked(c,x.flat);
     const state=r.done?'✓':!x.yt?esc(t.lesson.soonTag):!open?'🔒':r.pct>0?Math.round(r.pct)+'%':'';
-    const inner=`<span class="lt">${esc(x[L])}</span><span class="ld">${esc(x.dur)} <span class="ls ${r.done?'done':!open?'locked':'wip'}">${state}</span></span>`;
+    const inner=`<span class="lt">${esc(x[L])}</span><span class="ld">${x.yt?esc(x.dur):''} <span class="ls ${r.done?'done':!open?'locked':'wip'}">${state}</span></span>`;
     const cls=x.flat===idx?' class="cur"':'';
     return `<li${cls}>${open?`<a href="lesson.html?course=${c.id}&l=${x.flat}">${inner}</a>`:`<span class="lk">${inner}</span>`}</li>`;
   }).join('');
@@ -55,7 +55,7 @@ window.PAGE_INIT=function(){
       <div>
         <span class="tag" style="border-color:${tr.color};color:${tr.color}">${esc(tr[L]||tr.name)}</span>
         <h1 style="font-size:clamp(1.3rem,3.4vw,1.9rem);margin:.5rem 0 .2rem">${esc(les[L])}</h1>
-        <p class="muted small" style="margin-top:0">${esc(c.title[L])} · ${esc(t.lesson.unit)}: ${esc(les['unit'+(L==='ar'?'Ar':'En')])} · ${esc(les.dur)}</p>
+        <p class="muted small" style="margin-top:0">${esc(c.title[L])} · ${esc(t.lesson.unit)}: ${esc(les['unit'+(L==='ar'?'Ar':'En')])} · ${les.yt?esc(les.dur):esc(t.lesson.soonTag)}</p>
         ${les.yt
           ?`<div class="video-shell"><div id="yt-mount" class="yt-mount"></div></div>
             <div class="src-note">${esc(t.lesson.source)}: <a href="https://www.youtube.com/watch?v=${les.yt}" target="_blank" rel="noopener">${esc(les.vsrc||'YouTube')}</a></div>`
