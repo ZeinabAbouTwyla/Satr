@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الدرس — سطر</title>
+<script>try{var _l=JSON.parse(localStorage.getItem('satr_lang')||'"ar"');document.documentElement.lang=_l;document.documentElement.dir=_l==='ar'?'rtl':'ltr';}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="courses" data-theme="dark">
+<script>try{document.body.dataset.theme=JSON.parse(localStorage.getItem('satr_theme')||'"dark"')}catch(e){}</script>
+<main class="wrap" id="main"></main>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+window.PAGE_INIT=function(){
+  const A=window.SATR_APP,t=A.T(),esc=A.esc,L=A.lang();
+  const q=new URLSearchParams(location.search);
+  const c=window.SATR.courses.find(x=>x.id===q.get('course'));
+  const main=document.getElementById('main');
+  if(!c){location.replace('courses.html');return}
+  const tr=A.trackOf(c.track);
+  const fl=A.flatLessons(c);
+  const idx=parseInt(q.get('l')||'0',10);
+  const les=fl[idx];
+  if(!les){location.replace('course.html?id='+c.id);return}
+  // قفل تتابعي: الدرس يفتح فقط بعد إكمال الذي قبله
+  if(!A.isUnlocked(c,idx)){
+    main.innerHTML=`<section>
+      <a href="course.html?id=${c.id}" class="mono small">&larr; ${esc(t.lesson.back)}</a>
+      <div class="card" style="margin-top:1.4rem;text-align:center;padding:3rem 1.6rem">
+        <h2>${esc(t.lesson.lockedTitle)}</h2>
+        <p class="muted">${esc(t.lesson.lockedBody)}</p>
+        <a class="btn btn-acc" href="course.html?id=${c.id}" style="margin-top:.6rem">${esc(t.lesson.backToCourse)}</a>
+      </div>
+    </section>`;
+    return;
+  }
+  const prev=fl[idx-1], next=fl[idx+1];
+  const rec0=A.prog.get(c.id,idx);
+  document.title=les[L]+' — '+c.title[L]+' — '+t.brand;
+  const listHtml=fl.map(x=>{
+    const r=A.prog.get(c.id,x.flat), open=A.isUnlocked(c,x.flat);
+    const state=r.done?'✓':!x.yt?esc(t.lesson.soonTag):!open?'🔒':r.pct>0?Math.round(r.pct)+'%':'';
+    const inner=`<span class="lt">${esc(x[L])}</span><span class="ld">${esc(x.dur)} <span class="ls ${r.done?'done':!open?'locked':'wip'}">${state}</span></span>`;
+    const cls=x.flat===idx?' class="cur"':'';
+    return `<li${cls}>${open?`<a href="lesson.html?course=${c.id}&l=${x.flat}">${inner}</a>`:`<span class="lk">${inner}</span>`}</li>`;
+  }).join('');
+  main.innerHTML=`
+  <section>
+    <a href="course.html?id=${c.id}" class="mono small">&larr; ${esc(t.lesson.back)}</a>
+    <div class="lesson-grid" style="margin-top:1.2rem">
+      <div>
+        <span class="tag" style="border-color:${tr.color};color:${tr.color}">${esc(tr[L]||tr.name)}</span>
+        <h1 style="font-size:clamp(1.3rem,3.4vw,1.9rem);margin:.5rem 0 .2rem">${esc(les[L])}</h1>
+        <p class="muted small" style="margin-top:0">${esc(c.title[L])} · ${esc(t.lesson.unit)}: ${esc(les['unit'+(L==='ar'?'Ar':'En')])} · ${esc(les.dur)}</p>
+        ${les.yt
+          ?`<div class="video-shell"><div id="yt-mount" class="yt-mount"></div></div>
+            <div class="src-note">${esc(t.lesson.source)}: <a href="https://www.youtube.com/watch?v=${les.yt}" target="_blank" rel="noopener">${esc(les.vsrc||'YouTube')}</a></div>`
+          :`<div class="video-shell soon-shell"><div class="soon-note">🎬 ${esc(t.lesson.soon)}</div></div>`}
+        <div class="watch-row">
+          <div class="cprog-label"><span id="watchPct"></span><span id="watchState" class="mono"></span></div>
+          <div class="cprog"><i id="watchFill" style="width:0%"></i></div>
+        </div>
+        <div class="lesson-nav">
+          ${prev?`<a class="btn btn-ghost" href="lesson.html?course=${c.id}&l=${prev.flat}">&rarr; ${esc(t.lesson.prev)}</a>`:'<span></span>'}
+          ${next?`<a class="btn btn-acc" id="nextBtn" href="lesson.html?course=${c.id}&l=${next.flat}">${esc(t.lesson.next)} &larr;</a>`:''}
+        </div>
+        <p class="muted small" id="lockHint" style="display:none;margin-top:.4rem">${esc(t.lesson.nextLocked)}</p>
+      </div>
+      <aside class="card lesson-list-card">
+        <h3 style="font-size:1.05rem;margin-top:0">${esc(t.lesson.list)}</h3>
+        <ol class="lesson-side">${listHtml}</ol>
+      </aside>
+    </div>
+  </section>`;
+  const nextBtn=document.getElementById('nextBtn');
+  const paint=rec=>{
+    const pct=Math.min(100,Math.round(rec.pct));
+    document.getElementById('watchFill').style.width=(les.yt?pct:0)+'%';
+    document.getElementById('watchPct').textContent=les.yt?t.lesson.watch.replace('{pct}',pct):t.lesson.soon;
+    const st=document.getElementById('watchState');
+    st.textContent=rec.done?t.lesson.complete:'';
+    st.style.color=rec.done?'var(--acc)':'';
+    if(nextBtn){
+      if(rec.done||!les.yt){nextBtn.classList.remove('off');nextBtn.removeAttribute('aria-disabled');document.getElementById('lockHint').style.display='none';}
+      else{nextBtn.classList.add('off');nextBtn.setAttribute('aria-disabled','true');}
+    }
+  };
+  if(nextBtn)nextBtn.onclick=e=>{
+    if(nextBtn.classList.contains('off')){e.preventDefault();document.getElementById('lockHint').style.display='block';}
+  };
+  paint(rec0);
+  if(les.yt)A.watchYt('yt-mount',les,c.id,idx,paint);
+};
+</script>
+</body>
+</html>

@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>المسار — سطر</title>
+<script>try{var _l=JSON.parse(localStorage.getItem('satr_lang')||'"ar"');document.documentElement.lang=_l;document.documentElement.dir=_l==='ar'?'rtl':'ltr';}catch(e){}</script>
 <link rel="stylesheet" href="assets/fonts/fonts.css">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body data-page="courses" data-theme="dark">
+<script>try{document.body.dataset.theme=JSON.parse(localStorage.getItem('satr_theme')||'"dark"')}catch(e){}</script>
 <main class="wrap" id="main"></main>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/i18n.js"></script>
@@ -16,8 +18,13 @@
 window.PAGE_INIT=function(){
   const A=window.SATR_APP,t=A.T(),esc=A.esc,L=A.lang();
   const id=new URLSearchParams(location.search).get('id');
-  const c=window.SATR.courses.find(x=>x.id===id)||window.SATR.courses[0];
+  const c=window.SATR.courses.find(x=>x.id===id);
+  if(!c){location.replace('courses.html');return}
   const tr=A.trackOf(c.track), tt=A.totals(c);
+  const fl=A.flatLessons(c);
+  const pct=A.coursePct(c);
+  const firstOpen=fl.find(l=>A.isUnlocked(c,l.flat)&&!A.prog.get(c.id,l.flat).done);
+  const startLabel=pct>0?t.course.continueFrom:t.course.enroll;
   document.title=c.title[L]+' — '+t.brand;
   const hl=s=>{
     const strs=[];
@@ -34,19 +41,28 @@ window.PAGE_INIT=function(){
         <span class="tag" style="border-color:${tr.color};color:${tr.color}">${esc(tr[L]||tr.name)}</span>
         <h1 style="margin:.6rem 0 .4rem">${esc(c.title[L])}</h1>
         <p class="muted">${esc(c.desc[L])}</p>
-        <div class="meta" style="margin:.6rem 0 1.4rem;padding:0">
+        <div class="meta" style="margin:.6rem 0 .8rem;padding:0">
           <span>${esc(t.course.level)}: ${esc(c.level[L])}</span>
           <span>${tt.lessons} ${esc(t.course.lessons)}</span>
           <span>${esc(t.course.total)}: ~${tt.mins} ${esc(t.course.mins)}</span>
         </div>
-        <h2 style="font-size:1.3rem">${esc(t.course.syllabus)}</h2>
+        ${pct===null?'':`<div class="cprog-block">
+          <div class="cprog-label"><span>${esc(t.course.progress)}</span><span class="mono">${pct}%</span></div>
+          <div class="cprog"><i style="width:${pct}%"></i></div>
+        </div>`}
+        <h2 style="font-size:1.3rem;margin-top:1.6rem">${esc(t.course.syllabus)}</h2>
         <div class="syllabus" id="syl"></div>
       </div>
       <div>
         <img src="assets/img/cover-${c.track}.svg" alt="" style="border-radius:var(--r);border:1px solid var(--card-brd);width:100%">
+        ${c.ytCourse?`<div class="card" style="margin-top:1rem">
+          <h3 style="margin:0 0 .6rem;font-size:1.05rem">${esc(t.course.fullVideo)}</h3>
+          <div class="yt-mount"><iframe src="https://www.youtube.com/embed/${c.ytCourse.id}?rel=0" title="${esc(c.title[L])}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+          <div class="src-note">${esc(t.lesson.source)}: <a href="https://www.youtube.com/watch?v=${c.ytCourse.id}" target="_blank" rel="noopener">${esc(c.ytCourse.src)}</a></div>
+        </div>`:''}
         <div class="card" style="margin-top:1rem">
-          <a class="btn btn-acc" href="playground.html" style="width:100%;justify-content:center">${esc(t.course.enroll)}</a>
-          <p class="muted small" style="margin:.8rem 0 0;text-align:center">${esc(t.pg.tip)}</p>
+          <a class="btn btn-acc" href="lesson.html?course=${c.id}&l=${firstOpen?firstOpen.flat:0}" style="width:100%;justify-content:center">${esc(startLabel)}</a>
+          <a class="btn btn-ghost" href="playground.html" style="width:100%;justify-content:center;margin-top:.6rem">${esc(t.course.practice)}</a>
         </div>
       </div>
     </div>
@@ -58,11 +74,22 @@ window.PAGE_INIT=function(){
     </div>
   </section>`;
   const syl=document.getElementById('syl');
-  syl.innerHTML=c.syllabus.map((u,i)=>`
-    <div class="unit">
+  syl.innerHTML=c.syllabus.map((u,i)=>{
+    const items=u.lessons.map((l,li)=>{
+      const les=fl.find(x=>x.ui===i&&x.li===li);
+      const rec=A.prog.get(c.id,les.flat), open=A.isUnlocked(c,les.flat);
+      const state=rec.done?`<span class="ls done">✓ ${esc(t.course.done)}</span>`
+        :!les.yt?`<span class="ls soon">${esc(t.course.soon)}</span>`
+        :!open?`<span class="ls locked">🔒</span>`
+        :rec.pct>0?`<span class="ls wip">${Math.round(rec.pct)}%</span>`:'';
+      const inner=`<span class="lt">${esc(l[L==='ar'?0:1])}</span><span class="ld">${esc(l[2])} ${state}</span>`;
+      return `<li>${(open||!les.yt)?`<a href="lesson.html?course=${c.id}&l=${les.flat}">${inner}</a>`:`<span class="lk" title="${esc(t.course.locked)}">${inner}</span>`}</li>`;
+    }).join('');
+    return `<div class="unit">
       <button data-i="${i}"><span>${esc(u[L])}</span><span class="mono" style="color:var(--acc)">▾</span></button>
-      <ol style="display:${i===0?'block':'none'}">${u.lessons.map(l=>`<li><span>${esc(l[L==='ar'?0:1])}</span><span>${esc(l[2])}</span></li>`).join('')}</ol>
-    </div>`).join('');
+      <ol style="display:${i===0?'block':'none'}">${items}</ol>
+    </div>`;
+  }).join('');
   syl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
     const ol=b.parentElement.querySelector('ol');
     ol.style.display=ol.style.display==='none'?'block':'none';

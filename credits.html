@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>الاعتمادات — سطر</title>
+<script>try{var _l=JSON.parse(localStorage.getItem('satr_lang')||'"ar"');document.documentElement.lang=_l;document.documentElement.dir=_l==='ar'?'rtl':'ltr';}catch(e){}</script>
 <link rel="stylesheet" href="assets/fonts/fonts.css">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body data-page="credits" data-theme="dark">
+<script>try{document.body.dataset.theme=JSON.parse(localStorage.getItem('satr_theme')||'"dark"')}catch(e){}</script>
 <main class="wrap">
   <section>
     <span class="kicker" id="kick"></span>
@@ -19,12 +21,8 @@
         <p class="small mono" id="fL" style="color:var(--acc2)"></p>
       </div>
       <div class="card cred">
-        <h3 id="mH"></h3>
-        <p class="muted small" id="mN" style="margin-bottom:0"></p>
-      </div>
-      <div class="card cred">
-        <h3 id="tH"></h3>
-        <p class="muted small" id="tN" style="margin-bottom:0"></p>
+        <h3 id="dH"></h3>
+        <p class="muted small" id="dN" style="margin-bottom:0"></p>
       </div>
       <div class="card cred">
         <h3 style="font-family:var(--mono)">LICENSE</h3>
@@ -45,10 +43,8 @@ window.PAGE_INIT=function(){
   document.getElementById('fH').textContent=t.credits.fonts;
   document.getElementById('fN').textContent=t.credits.fontsNote;
   document.getElementById('fL').textContent=t.credits.fontsList;
-  document.getElementById('mH').textContent=t.credits.media;
-  document.getElementById('mN').textContent=t.credits.mediaNote;
-  document.getElementById('tH').textContent=t.credits.tech;
-  document.getElementById('tN').textContent=t.credits.techNote;
+  document.getElementById('dH').textContent=t.credits.demo;
+  document.getElementById('dN').textContent=t.credits.demoNote;
 };
 </script>
 </body>
