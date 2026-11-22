@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المسارات — سطر</title>
+<meta name="description" content="كل دروس ومسارات سطر عبر خمس تقنيات: .NET وجافا وNode.js وبايثون وC++.">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="courses" data-theme="dark">
+<main class="wrap">
+  <section>
+    <span class="kicker" id="kick"></span>
+    <h1 id="h" style="font-size:clamp(1.6rem,4.4vw,2.6rem)"></h1>
+    <p class="muted" id="sub"></p>
+    <div class="search" style="margin-top:1rem"><span class="mono" style="color:var(--acc)">&gt;_</span><input id="q" type="search"></div>
+    <div class="chips" id="chips"></div>
+    <div class="grid g3" id="grid"></div>
+    <div class="empty" id="empty" style="display:none"></div>
+  </section>
+</main>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+window.PAGE_INIT=function(){
+  const A=window.SATR_APP,t=A.T(),esc=A.esc,L=A.lang();
+  document.title=t.coursesPage.title+' — '+t.brand;
+  document.getElementById('kick').textContent=t.nav.courses;
+  document.getElementById('h').textContent=t.coursesPage.title;
+  document.getElementById('sub').textContent=t.coursesPage.sub;
+  const q=document.getElementById('q'); q.placeholder=t.coursesPage.search;
+  let active=new URLSearchParams(location.search).get('track')||'all';
+  const chips=document.getElementById('chips');
+  function renderChips(){
+    const all=[{id:'all',label:t.coursesPage.all}].concat(window.SATR.tracks.map(tr=>({id:tr.id,label:tr[L]||tr.name})));
+    chips.innerHTML=all.map(c=>`<button class="chip${c.id===active?' on':''}" data-id="${c.id}">${esc(c.label)}</button>`).join('');
+    chips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{active=b.dataset.id;renderChips();render();});
+  }
+  const grid=document.getElementById('grid'), empty=document.getElementById('empty');
+  function render(){
+    const needle=(q.value||'').trim().toLowerCase();
+    const list=window.SATR.courses.filter(c=>
+      (active==='all'||c.track===active) &&
+      (!needle || c.title.ar.toLowerCase().includes(needle) || c.title.en.toLowerCase().includes(needle) || c.desc.ar.includes(needle) || c.desc.en.toLowerCase().includes(needle)));
+    grid.innerHTML=list.map(A.courseCard).join('');
+    empty.style.display=list.length?'none':'block';
+    if(!list.length)empty.textContent=t.coursesPage.empty;
+  }
+  q.addEventListener('input',render);
+  renderChips(); render();
+};
+</script>
+</body>
+</html>

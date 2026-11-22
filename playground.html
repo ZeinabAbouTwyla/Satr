@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ساحة التجربة — سطر</title>
+<meta name="description" content="محرر جافاسكربت يعمل داخل المتصفح مع وحدة إخراج فورية.">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="playground" data-theme="dark">
+<main class="wrap">
+  <section>
+    <span class="kicker" id="kick"></span>
+    <h1 id="h" style="font-size:clamp(1.6rem,4.4vw,2.6rem)"></h1>
+    <p class="muted" id="sub"></p>
+    <p class="small" style="margin-top:.6rem"><span class="mono" style="color:var(--acc2)" id="snipsLabel"></span></p>
+    <div class="snippets" id="snips"></div>
+    <div class="pg">
+      <div class="pg-pane">
+        <div class="pg-head"><span id="edLabel"></span>
+          <span><button class="copy-btn" id="runBtn" style="color:var(--acc);border-color:var(--acc)"></button>
+          <button class="copy-btn" id="clearBtn"></button></span></div>
+        <textarea id="editor" spellcheck="false"></textarea>
+      </div>
+      <div class="pg-pane">
+        <div class="pg-head"><span id="conLabel"></span></div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+window.PAGE_INIT=function(){
+  const A=window.SATR_APP,t=A.T(),esc=A.esc;
+  document.title=t.pg.title+' — '+t.brand;
+  document.getElementById('kick').textContent=t.nav.playground;
+  document.getElementById('h').textContent=t.pg.title;
+  document.getElementById('sub').textContent=t.pg.sub;
+  document.getElementById('edLabel').textContent=t.pg.editor+' — main.js';
+  document.getElementById('conLabel').textContent=t.pg.console;
+  document.getElementById('runBtn').textContent='▶ '+t.pg.run;
+  document.getElementById('clearBtn').textContent=t.pg.clear;
+  document.getElementById('snipsLabel').textContent=t.pg.snippets+':';
+  const snippets={
+    hello:'// '+t.brand+'\nconsole.log("Hello from Satr!");\nconsole.log("2 + 2 =", 2 + 2);',
+    loop:'const langs = ["Python", "Java", "C++", ".NET", "Node"];\nfor (const l of langs) {\n  console.log("Learning", l);\n}\nconsole.log("Total:", langs.length);',
+    fizz:'for (let i = 1; i <= 15; i++) {\n  if (i % 15 === 0) console.log("FizzBuzz");\n  else if (i % 3 === 0) console.log("Fizz");\n  else if (i % 5 === 0) console.log("Buzz");\n  else console.log(i);\n}',
+    fib:'function fib(n) {\n  const out = [0, 1];\n  for (let i = 2; i < n; i++)\n    out.push(out[i-1] + out[i-2]);\n  return out;\n}\nconsole.log(fib(10).join(", "));'
+  };
+  const editor=document.getElementById('editor'), con=document.getElementById('console'), snips=document.getElementById('snips');
+  Object.keys(snippets).forEach(k=>{
+    const b=document.createElement('button'); b.className='snip'; b.textContent=k;
+    b.onclick=()=>{editor.value=snippets[k]}; snips.appendChild(b);
+  });
+  editor.value=A.store.get('satr_pg', snippets.hello);
+  editor.addEventListener('input',()=>A.store.set('satr_pg',editor.value));
+  function line(txt,cls){const d=document.createElement('div');if(cls)d.className=cls;d.textContent=txt;con.appendChild(d);}
+  function run(){
+    con.innerHTML='';
+    const code=editor.value;
+    try{
+      const logs=[];
+      const fake={log:(...a)=>logs.push({cls:'',v:a.map(fmt).join(' ')}),warn:(...a)=>logs.push({cls:'warn',v:a.map(fmt).join(' ')}),error:(...a)=>logs.push({cls:'err',v:a.map(fmt).join(' ')})};
+      function fmt(x){ if(typeof x==='string')return x; try{return JSON.stringify(x)}catch(e){return String(x)} }
+      new Function('console', '"use strict";\n'+code)(fake);
+      if(!logs.length)line(A.lang()==='ar'?'(لا مخرجات — استخدم console.log)':'(no output — use console.log)','warn');
+      logs.forEach(l=>line(l.v,l.cls));
+      line(A.lang()==='ar'?'— انتهى التنفيذ بنجاح':'— finished OK','ok');
+    }catch(err){ line(String(err),'err'); }
+    con.scrollTop=con.scrollHeight;
+  }
+  document.getElementById('runBtn').onclick=run;
+  document.getElementById('clearBtn').onclick=()=>{con.innerHTML=''};
+  editor.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run();}
+    if(e.key==='Tab'){e.preventDefault();const s=editor.selectionStart;editor.setRangeText('  ',s,editor.selectionEnd,'end');}});
+  line(t.pg.tip,'warn');
+};
+</script>
+</body>
+</html>

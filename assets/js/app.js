@@ -1,0 +1,102 @@
+/* Satr app: theme/lang persistence, header/footer render, code-rain canvas, helpers. */
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const store={
+    get:(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+    set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  };
+  let lang=store.get('satr_lang','ar'), theme=store.get('satr_theme','dark');
+  const T=()=>window.I18N[lang];
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function applyRoot(){
+    document.documentElement.lang=lang; document.documentElement.dir=T().dir;
+    document.body.dataset.theme=theme;
+  }
+  function totals(c){
+    let lessons=0, secs=0;
+    c.syllabus.forEach(u=>u.lessons.forEach(l=>{lessons++;const m=/(\d+):(\d+)/.exec(l[2]);if(m)secs+=(+m[1])*60+(+m[2]);}));
+    return {lessons, mins:Math.max(1,Math.round(secs/60))};
+  }
+  function trackOf(id){return window.SATR.tracks.find(t=>t.id===id)}
+
+  function header(active){
+    const t=T();
+    const el=document.createElement('header');
+    el.innerHTML=`<div class="wrap bar">
+      <a class="logo" href="index.html"><span class="glyph">~/</span><span>${esc(t.brand)}<span style="color:var(--acc)">.</span></span></a>
+      <button class="icon-btn burger" aria-label="${esc(t.a11y.menu)}" id="burger">☰</button>
+      <nav id="nav">
+        <a href="index.html" data-p="index">${esc(t.nav.home)}</a>
+        <a href="courses.html" data-p="courses">${esc(t.nav.courses)}</a>
+        <a href="playground.html" data-p="playground">${esc(t.nav.playground)}</a>
+        <a href="credits.html" data-p="credits">${esc(t.nav.credits)}</a>
+      </nav>
+      <div class="tools">
+        <button class="icon-btn" id="langBtn" title="Language">${esc(t.a11y.lang)}</button>
+        <button class="icon-btn" id="themeBtn" aria-label="${esc(t.a11y.theme)}">${theme==='dark'?'☀':'☾'}</button>
+      </div>
+    </div>`;
+    el.querySelectorAll('nav a').forEach(a=>{if(a.dataset.p===active)a.classList.add('on')});
+    el.querySelector('#burger').onclick=()=>el.querySelector('#nav').classList.toggle('open');
+    el.querySelector('#langBtn').onclick=()=>{lang=lang==='ar'?'en':'ar';store.set('satr_lang',lang);location.reload()};
+    el.querySelector('#themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';store.set('satr_theme',theme);document.body.dataset.theme=theme;el.querySelector('#themeBtn').textContent=theme==='dark'?'☀':'☾'};
+    document.body.prepend(el);
+  }
+  function footer(){
+    const t=T();
+    const el=document.createElement('footer');
+    el.innerHTML=`<div class="wrap foot">
+      <span>${esc(t.footer.rights)}</span>
+      <a class="mono" href="https://www.linkedin.com/in/zaynab-aboutwylah-b71a79314" target="_blank" rel="noopener">${esc(t.footer.made)}</a>
+    </div>`;
+    document.body.appendChild(el);
+  }
+  function courseCard(c){
+    const tr=trackOf(c.track), tt=totals(c), t=T();
+    return `<a class="card cover hov" href="course.html?id=${c.id}" style="color:inherit">
+      <img src="assets/img/cover-${c.track}.svg" alt="" loading="lazy" style="width:100%;aspect-ratio:16/8;object-fit:cover">
+      <div class="body">
+        <span class="tag" style="border-color:${tr.color};color:${tr.color}">${esc(tr[lang]||tr.name)}</span>
+        <h3 style="margin:.1rem 0">${esc(c.title[lang])}</h3>
+        <p class="muted small" style="margin:0">${esc(c.desc[lang])}</p>
+        <div class="meta"><span>${esc(c.level[lang])}</span><span>${tt.lessons} ${esc(t.course.lessons)}</span><span>${tt.mins} ${esc(t.course.mins)}</span></div>
+      </div></a>`;
+  }
+  /* code rain: subtle, reduced-motion aware, cheap on small screens */
+  function rain(){
+    const cv=document.createElement('canvas'); cv.id='rain'; document.body.prepend(cv);
+    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ctx=cv.getContext('2d');
+    const glyphs='01{}[]()<>/=+;#$%&*~:.'; let cols=[], W,H, fs=15, raf, last=0;
+    function size(){W=cv.width=innerWidth*devicePixelRatio;H=cv.height=innerHeight*devicePixelRatio;
+      const n=Math.min(70,Math.floor(innerWidth/22));
+      cols=Array.from({length:n},(_,i)=>({x:i*(W/n)+Math.random()*20,y:Math.random()*H,sp:(0.4+Math.random()*0.8)*devicePixelRatio}));}
+    function frame(ts){
+      raf=requestAnimationFrame(frame);
+      if(ts-last<50)return; last=ts; /* ~20fps, gentle */
+      ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg').trim()||'#0b0f16';
+      ctx.globalAlpha=.18; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+      ctx.font=`${fs*devicePixelRatio}px 'JetBrains Mono',monospace`;
+      const dark=document.body.dataset.theme!=='light';
+      cols.forEach(c=>{
+        const ch=glyphs[Math.random()*glyphs.length|0];
+        ctx.fillStyle=Math.random()<.12?'#39d98a':(dark?'#1e3a4d':'#9fb4cc');
+        ctx.fillText(ch,c.x,c.y);
+        c.y+=c.sp*fs; if(c.y>H+40){c.y=-20;c.sp=(0.4+Math.random()*0.8)*devicePixelRatio;}
+      });
+    }
+    size(); addEventListener('resize',size);
+    if(!reduced){raf=requestAnimationFrame(frame);
+      document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAnimationFrame(raf);else raf=requestAnimationFrame(frame);});
+    } else { /* static sprinkle for reduced motion */
+      ctx.font=`${fs*devicePixelRatio}px 'JetBrains Mono',monospace`;
+      for(let i=0;i<400;i++){ctx.fillStyle='rgba(57,217,138,.10)';ctx.fillText(glyphs[Math.random()*glyphs.length|0],Math.random()*W,Math.random()*H);}
+    }
+  }
+  window.SATR_APP={T:()=>T(),lang:()=>lang,esc,totals,trackOf,courseCard,store};
+  document.addEventListener('DOMContentLoaded',()=>{
+    applyRoot(); header(document.body.dataset.page||''); footer(); rain();
+    if(window.PAGE_INIT)window.PAGE_INIT();
+  });
+})();

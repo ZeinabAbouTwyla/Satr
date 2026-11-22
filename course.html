@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المسار — سطر</title>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="courses" data-theme="dark">
+<main class="wrap" id="main"></main>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+window.PAGE_INIT=function(){
+  const A=window.SATR_APP,t=A.T(),esc=A.esc,L=A.lang();
+  const id=new URLSearchParams(location.search).get('id');
+  const c=window.SATR.courses.find(x=>x.id===id)||window.SATR.courses[0];
+  const tr=A.trackOf(c.track), tt=A.totals(c);
+  document.title=c.title[L]+' — '+t.brand;
+  const hl=s=>{
+    const strs=[];
+    let out=esc(s).replace(/(&quot;.*?&quot;|"[^"\n]*"|'[^'\n]*')/g,m=>{strs.push(m);return '\u0001'+String.fromCharCode(65+strs.length-1)+'\u0001';});
+    out=out.replace(/\b(const|let|function|return|import|from|export|new|static|void|public|private|int|string|for|while|if|else|using|namespace|def|async|await|record|this|true|false|null|None)\b/g,'<span class="tk-k">$1</span>')
+           .replace(/\b(\d+(?:\.\d+)?)\b/g,'<span class="tk-n">$1</span>');
+    return out.replace(/\u0001([A-Z])\u0001/g,(m,ch)=>'<span class="tk-s">'+strs[ch.charCodeAt(0)-65]+'</span>');
+  };
+  document.getElementById('main').innerHTML=`
+  <section>
+    <a href="courses.html" class="mono small">&larr; ${esc(t.course.back)}</a>
+    <div class="detail-head" style="margin-top:1.2rem">
+      <div>
+        <span class="tag" style="border-color:${tr.color};color:${tr.color}">${esc(tr[L]||tr.name)}</span>
+        <h1 style="margin:.6rem 0 .4rem">${esc(c.title[L])}</h1>
+        <p class="muted">${esc(c.desc[L])}</p>
+        <div class="meta" style="margin:.6rem 0 1.4rem;padding:0">
+          <span>${esc(t.course.level)}: ${esc(c.level[L])}</span>
+          <span>${tt.lessons} ${esc(t.course.lessons)}</span>
+          <span>${esc(t.course.total)}: ~${tt.mins} ${esc(t.course.mins)}</span>
+        </div>
+        <h2 style="font-size:1.3rem">${esc(t.course.syllabus)}</h2>
+        <div class="syllabus" id="syl"></div>
+      </div>
+      <div>
+        <img src="assets/img/cover-${c.track}.svg" alt="" style="border-radius:var(--r);border:1px solid var(--card-brd);width:100%">
+        <div class="card" style="margin-top:1rem">
+          <a class="btn btn-acc" href="playground.html" style="width:100%;justify-content:center">${esc(t.course.enroll)}</a>
+          <p class="muted small" style="margin:.8rem 0 0;text-align:center">${esc(t.pg.tip)}</p>
+        </div>
+      </div>
+    </div>
+    <h2 style="font-size:1.3rem;margin-top:2.2rem">${esc(t.course.sample)}</h2>
+    <div class="codeblock">
+      <div class="cb-head"><span>sample.${c.track==='cpp'?'cpp':c.track==='python'?'py':c.track==='java'?'java':c.track==='dotnet'?'cs':'js'}</span>
+        <button class="copy-btn" id="copyBtn">${esc(t.course.copy)}</button></div>
+      <pre id="codePre">${hl(c.sample)}</pre>
+    </div>
+  </section>`;
+  const syl=document.getElementById('syl');
+  syl.innerHTML=c.syllabus.map((u,i)=>`
+    <div class="unit">
+      <button data-i="${i}"><span>${esc(u[L])}</span><span class="mono" style="color:var(--acc)">▾</span></button>
+      <ol style="display:${i===0?'block':'none'}">${u.lessons.map(l=>`<li><span>${esc(l[L==='ar'?0:1])}</span><span>${esc(l[2])}</span></li>`).join('')}</ol>
+    </div>`).join('');
+  syl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const ol=b.parentElement.querySelector('ol');
+    ol.style.display=ol.style.display==='none'?'block':'none';
+  });
+  document.getElementById('copyBtn').onclick=function(){
+    navigator.clipboard&&navigator.clipboard.writeText(c.sample);
+    this.textContent=t.course.copied; setTimeout(()=>this.textContent=t.course.copy,1500);
+  };
+};
+</script>
+</body>
+</html>

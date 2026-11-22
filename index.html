@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سطر — تعلم البرمجة سطرًا سطرًا</title>
+<meta name="description" content="منصة تعليم برمجة بمسارات منظمة في خمس تقنيات: .NET وجافا وNode.js وبايثون وC++.">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="index" data-theme="dark">
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <span class="kicker" data-t="hero.kicker">منصة تعليم برمجة</span>
+      <h1 id="heroTitle"></h1>
+      <p class="lede" id="heroLede"></p>
+      <div class="hero-cta">
+        <a class="btn btn-acc" href="courses.html" id="cta1"></a>
+        <a class="btn btn-ghost" href="playground.html" id="cta2"></a>
+      </div>
+    </div>
+    <div class="term" aria-label="code example">
+      <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title" id="termTitle"></span></div>
+      <pre id="termCode"><span class="tk-k">const</span> learner = {
+  name: <span class="tk-s">"you"</span>,
+  goal: <span class="tk-s">"write real code"</span>,
+};
+
+<span class="tk-f">start</span>(learner)
+  .<span class="tk-f">practice</span>({ daily: <span class="tk-n">true</span> })
+  .<span class="tk-f">then</span>(build =&gt; <span class="tk-f">ship</span>(build));
+
+<span class="tk-c">// line by line, it adds up</span><span class="caret"></span></pre>
+    </div>
+  </section>
+
+  <section id="tracksSec">
+    <h2 id="tracksH"></h2>
+    <p class="muted" id="tracksSub"></p>
+    <div class="grid g3" id="tracksGrid" style="margin-top:1.4rem"></div>
+  </section>
+
+  <section id="storySec">
+    <div class="card" style="padding:2.2rem">
+      <span class="kicker" id="storyKick"></span>
+      <h2 id="storyT"></h2>
+      <p id="storyP1"></p>
+      <p class="muted" id="storyP2" style="margin-bottom:0"></p>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="howH"></h2>
+    <div class="story" id="stepsGrid" style="margin-top:1.4rem"></div>
+  </section>
+</main>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+window.PAGE_INIT=function(){
+  const A=window.SATR_APP,t=A.T(),esc=A.esc;
+  document.title=(A.lang()==='ar'?'سطر':'Satr')+' — '+t.tagline;
+  document.getElementById('heroTitle').innerHTML=t.hero.title.replace('<em>','<em style="color:var(--acc);font-style:normal">');
+  document.getElementById('heroLede').textContent=t.hero.lede;
+  document.getElementById('cta1').textContent=t.hero.cta1;
+  document.getElementById('cta2').textContent=t.hero.cta2;
+  document.getElementById('termTitle').textContent=t.terminal.title;
+  document.getElementById('tracksH').textContent=t.sections.tracks;
+  document.getElementById('tracksSub').textContent=t.sections.tracksSub;
+  const L=A.lang();
+  document.getElementById('tracksGrid').innerHTML=window.SATR.tracks.map(tr=>{
+    const count=window.SATR.courses.filter(c=>c.track===tr.id).length;
+    return `<a class="card hov" href="courses.html?track=${tr.id}" style="color:inherit">
+      <div class="mono" style="font-size:1.6rem;font-weight:800;color:${tr.color}">${esc(tr.name)}</div>
+      <p class="muted small" style="margin:.4rem 0 .8rem">${esc(tr.blurb[L])}</p>
+      <span class="tag on">${count} ${A.lang()==='ar'?'مسارات تعليمية':'courses'}</span></a>`;
+  }).join('');
+  document.getElementById('storyKick').textContent=t.sections.story;
+  document.getElementById('storyT').textContent=t.story.title;
+  document.getElementById('storyP1').textContent=t.story.p1;
+  document.getElementById('storyP2').textContent=t.story.p2;
+  document.getElementById('howH').textContent=t.sections.how;
+  document.getElementById('stepsGrid').innerHTML=t.steps.map(s=>`<div class="step"><h3>${esc(s.t)}</h3><p class="muted small" style="margin:0">${esc(s.d)}</p></div>`).join('');
+};
+</script>
+</body>
+</html>
