@@ -15,7 +15,7 @@
   }
   function totals(c){
     let lessons=0, secs=0;
-    c.syllabus.forEach(u=>u.lessons.forEach(l=>{lessons++;const m=/(\d+):(\d+)/.exec(l[2]);if(m)secs+=(+m[1])*60+(+m[2]);}));
+    c.syllabus.forEach(u=>u.lessons.forEach(l=>{if(!l[3])return;lessons++;const m=/(\d+):(\d+)/.exec(l[2]);if(m)secs+=(+m[1])*60+(+m[2]);}));
     return {lessons, mins:Math.max(1,Math.round(secs/60))};
   }
   function trackOf(id){return window.SATR.tracks.find(t=>t.id===id)}
@@ -121,7 +121,7 @@
         <span class="tag" style="border-color:${tr.color};color:${tr.color}">${esc(tr[lang]||tr.name)}</span>
         <h3 style="margin:.1rem 0">${esc(c.title[lang])}</h3>
         <p class="muted small" style="margin:0">${esc(c.desc[lang])}</p>
-        <div class="meta"><span>${esc(c.level[lang])}</span><span>${tt.lessons} ${esc(t.course.lessons)}</span><span>${tt.mins} ${esc(t.course.mins)}</span></div>
+        <div class="meta"><span>${esc(c.level[lang])}</span>${tt.lessons?`<span>${tt.lessons} ${esc(t.course.lessons)}</span><span>${tt.mins} ${esc(t.course.mins)}</span>`:`<span>${esc(t.course.soon)}</span>`}</div>
         ${pct!==null&&pct>0?`<div class="cprog"><i style="width:${pct}%"></i><span>${pct}%</span></div>`:''}
       </div></a>`;
   }
