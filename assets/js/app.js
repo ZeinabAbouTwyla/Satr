@@ -1,4 +1,4 @@
-/* Satr app: theme/lang persistence, header/footer render, code-rain canvas, helpers. */
+/* Satr app: theme/lang persistence, header/footer render, code-rain canvas, progress/watch engine, helpers. */
 (function(){
   const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
   const store={
@@ -19,6 +19,66 @@
     return {lessons, mins:Math.max(1,Math.round(secs/60))};
   }
   function trackOf(id){return window.SATR.tracks.find(t=>t.id===id)}
+
+  /* تتبع التقدم: لكل درس {watched ثوانٍ، pct، done، pos} — يُحفَظ على جهاز الزائر */
+  const prog={
+    all(){return store.get('satr_prog',{})},
+    key:(c,i)=>c+'/'+i,
+    get(c,i){return this.all()[this.key(c,i)]||{watched:0,pct:0,done:false,pos:0}},
+    set(c,i,r){const p=this.all();p[this.key(c,i)]=r;store.set('satr_prog',p)}
+  };
+  function flatLessons(c){
+    const out=[];
+    c.syllabus.forEach((u,ui)=>u.lessons.forEach((l,li)=>out.push({ui,li,flat:out.length,ar:l[0],en:l[1],dur:l[2],unitAr:u.ar,unitEn:u.en,yt:l[3]||null,vsrc:l[4]||null})));
+    return out;
+  }
+  function isUnlocked(c,i){
+    const fl=flatLessons(c);
+    if(!fl[i]||!fl[i].yt)return true;
+    for(let j=0;j<i;j++)if(fl[j].yt&&!prog.get(c.id,j).done)return false;
+    return true;
+  }
+  function coursePct(c){
+    const fl=flatLessons(c).filter(l=>l.yt); if(!fl.length)return null;
+    return Math.round(fl.filter(l=>prog.get(c.id,l.flat).done).length/fl.length*100);
+  }
+  /* قياس المشاهدة الفعلية من مشغّل يوتيوب المضمّن؛ يكتمل الدرس عند 90٪ مشاهدة حقيقية */
+  function watchYt(mountId,les,courseId,flat,onChange){
+    let rec=prog.get(courseId,flat), lastT=0, saveTimer=null;
+    const commit=()=>prog.set(courseId,flat,rec);
+    const throttled=()=>{if(saveTimer)return;saveTimer=setTimeout(()=>{saveTimer=null;commit()},1000)};
+    const markDone=()=>{rec.pct=100;rec.done=true;rec.pos=0;};
+    const start=()=>{
+      const player=new YT.Player(mountId,{videoId:les.yt,playerVars:{rel:0,modestbranding:1,enablejsapi:1},events:{
+        onReady:e=>{const dur=e.target.getDuration()||0; if(rec.pos>2&&!rec.done&&dur&&rec.pos<dur-2)e.target.seekTo(rec.pos,true);},
+        onStateChange:e=>{
+          if(e.data===YT.PlayerState.ENDED){const dur=e.target.getDuration()||0; if(!rec.done&&dur&&(rec.watched||0)>=dur*0.9)markDone(); commit();onChange(rec);}
+          if(e.data===YT.PlayerState.PLAYING)lastT=e.target.getCurrentTime();
+        }
+      }});
+      window.SatrPlayer=player;
+      setInterval(()=>{
+        if(!player||!player.getPlayerState)return;
+        if(player.getPlayerState()===YT.PlayerState.PLAYING){
+          const ct=player.getCurrentTime(), d=ct-lastT; lastT=ct;
+          const dur=player.getDuration()||0;
+          if(!rec.done&&dur&&d>0&&d<=2.1){
+            rec.watched=Math.min(dur,(rec.watched||0)+d);
+            rec.pct=rec.watched/dur*100;
+            if(rec.pct>=90)markDone();
+          }
+          if(!rec.done)rec.pos=ct;
+          onChange(rec);throttled();
+        }else if(player.getCurrentTime){lastT=player.getCurrentTime();}
+      },1000);
+    };
+    if(window.YT&&window.YT.Player){start();}
+    else{
+      const prev=window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady=()=>{if(prev)prev();start();};
+      if(!document.getElementById('yt-api')){const sc=document.createElement('script');sc.id='yt-api';sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc);}
+    }
+  }
 
   function header(active){
     const t=T();
@@ -54,6 +114,7 @@
   }
   function courseCard(c){
     const tr=trackOf(c.track), tt=totals(c), t=T();
+    const pct=coursePct(c);
     return `<a class="card cover hov" href="course.html?id=${c.id}" style="color:inherit">
       <img src="assets/img/cover-${c.track}.svg" alt="" loading="lazy" style="width:100%;aspect-ratio:16/8;object-fit:cover">
       <div class="body">
@@ -61,6 +122,7 @@
         <h3 style="margin:.1rem 0">${esc(c.title[lang])}</h3>
         <p class="muted small" style="margin:0">${esc(c.desc[lang])}</p>
         <div class="meta"><span>${esc(c.level[lang])}</span><span>${tt.lessons} ${esc(t.course.lessons)}</span><span>${tt.mins} ${esc(t.course.mins)}</span></div>
+        ${pct!==null&&pct>0?`<div class="cprog"><i style="width:${pct}%"></i><span>${pct}%</span></div>`:''}
       </div></a>`;
   }
   /* code rain: subtle, reduced-motion aware, cheap on small screens */
@@ -94,7 +156,7 @@
       for(let i=0;i<400;i++){ctx.fillStyle='rgba(57,217,138,.10)';ctx.fillText(glyphs[Math.random()*glyphs.length|0],Math.random()*W,Math.random()*H);}
     }
   }
-  window.SATR_APP={T:()=>T(),lang:()=>lang,esc,totals,trackOf,courseCard,store};
+  window.SATR_APP={T:()=>T(),lang:()=>lang,esc,totals,trackOf,courseCard,store,prog,flatLessons,isUnlocked,coursePct,watchYt};
   document.addEventListener('DOMContentLoaded',()=>{
     applyRoot(); header(document.body.dataset.page||''); footer(); rain();
     if(window.PAGE_INIT)window.PAGE_INIT();

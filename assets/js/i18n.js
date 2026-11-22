@@ -20,13 +20,23 @@ window.I18N = {
     },
     steps:[
       {t:'اختر مسارًا', d:'خمس تقنيات، ولكل تقنية مستويات من المبتدئ إلى المتقدم.'},
-      {t:'تعلم بالممارسة', d:'كل وحدة تنتهي بمشروع صغير تكتبه بنفسك.'},
+      {t:'شاهد وتدرّج', d:'كل درس يفتح الذي يليه بعد اكتمال مشاهدته، وتقدمك محسوب لك.'},
       {t:'جرّب فورًا', d:'ساحة التجربة تعمل في المتصفح دون أي تثبيت.'}
     ],
     coursesPage:{title:'كل الدروس والمسارات', sub:'رشح حسب التقنية أو ابحث بالاسم.', search:'ابحث عن مسار…', all:'الكل', empty:'لا نتائج مطابقة. جرّب كلمة أخرى.'},
     course:{
       back:'عودة إلى المسارات', syllabus:'المنهج', lessons:'درس', mins:'دقيقة', total:'الإجمالي',
-      sample:'مثال من المنهج', copy:'نسخ', copied:'تم النسخ', enroll:'ابدأ المسار', level:'المستوى', track:'المسار'
+      sample:'مثال من المنهج', copy:'نسخ', copied:'تم النسخ', enroll:'ابدأ المسار', level:'المستوى', track:'المسار',
+      practice:'جرّب الكود في ساحة التجربة', progress:'تقدمك في المسار', start:'ابدأ من هنا',
+      locked:'يفتح بعد إكمال الدرس السابق', done:'مكتمل', continueFrom:'أكمل من حيث توقفت', soon:'قريبًا', fullVideo:'فيديو الكورس الكامل'
+    },
+    lesson:{
+      back:'عودة إلى المسار', unit:'الوحدة', list:'دروس المسار',
+      prev:'الدرس السابق', next:'الدرس التالي',
+      watch:'نسبة المشاهدة: {pct}%', complete:'اكتمل الدرس ✓',
+      nextLocked:'يفتح الدرس التالي بعد اكتمال المشاهدة',
+      demoClip:'مقطع توضيحي', source:'المصدر', soon:'فيديو هذا الدرس يُضاف قريبًا — راجع فيديو الكورس الكامل في صفحة الكورس', soonTag:'قريبًا', lockedTitle:'هذا الدرس مقفل حاليًا',
+      lockedBody:'أكمل الدرس السابق أولًا ليفتح هذا الدرس.', backToCourse:'ارجع إلى صفحة المسار'
     },
     pg:{
       title:'ساحة التجربة', sub:'اكتب جافاسكربت وشغّله هنا مباشرة. النتائج تظهر في وحدة الإخراج.',
@@ -35,8 +45,7 @@ window.I18N = {
     },
     credits:{title:'الاعتمادات والمصادر', fonts:'الخطوط', fontsNote:'خطوط مفتوحة المصدر من Google Fonts، مضمنة محليًا لتعمل دون اتصال.',
       fontsList:'Cairo (OFL) للعناوين — IBM Plex Sans Arabic (OFL) للنصوص — JetBrains Mono (OFL) للشيفرة.',
-      media:'الوسائط', mediaNote:'أغلفة المسارات رسوم SVG مولدة برمجيًا خصيصًا لهذا المشروع، بلا صور فوتوغرافية.',
-      tech:'تقنيًا', techNote:'موقع أمامي (Frontend) بالكامل: HTML وCSS وJavaScript خالصان بلا أي خادم. الحالة تحفظ في متصفحك فقط (localStorage).'},
+      demo:'نموذج عرض', demoNote:'«سطر» منصة تجريبية للعرض: الدروس والمقاطع المصورة محتوى توضيحي يبين طريقة عمل المنصة، والتقدم يُحفَظ على جهاز الزائر فقط.'},
     footer:{made:'Made by Zaynab Abu Twyla', rights:'سطر — تعلم البرمجة سطرًا سطرًا.'},
     a11y:{menu:'القائمة', theme:'تبديل المظهر', lang:'English'}
   },
@@ -60,13 +69,23 @@ window.I18N = {
     },
     steps:[
       {t:'Pick a track', d:'Five technologies, each with levels from beginner to advanced.'},
-      {t:'Learn by doing', d:'Every unit ends with a small project you write yourself.'},
+      {t:'Watch and progress', d:'Each lesson unlocks the next once you finish watching it, and your progress is tracked for you.'},
       {t:'Try instantly', d:'The playground runs in your browser with zero setup.'}
     ],
     coursesPage:{title:'All lessons and tracks', sub:'Filter by technology or search by name.', search:'Search tracks…', all:'All', empty:'No matching results. Try another word.'},
     course:{
       back:'Back to tracks', syllabus:'Curriculum', lessons:'lessons', mins:'min', total:'Total',
-      sample:'Sample from the curriculum', copy:'Copy', copied:'Copied', enroll:'Start this track', level:'Level', track:'Track'
+      sample:'Sample from the curriculum', copy:'Copy', copied:'Copied', enroll:'Start this track', level:'Level', track:'Track',
+      practice:'Try the code in the playground', progress:'Your progress in this track', start:'Start here',
+      locked:'Unlocks after the previous lesson is complete', done:'Done', continueFrom:'Resume where you left off', soon:'Soon', fullVideo:'Full course video'
+    },
+    lesson:{
+      back:'Back to the track', unit:'Unit', list:'Track lessons',
+      prev:'Previous lesson', next:'Next lesson',
+      watch:'Watched: {pct}%', complete:'Lesson complete ✓',
+      nextLocked:'The next lesson unlocks once you finish watching',
+      demoClip:'Demo clip', source:'Source', soon:'The video for this lesson is coming soon — see the full course video on the course page', soonTag:'Soon', lockedTitle:'This lesson is locked',
+      lockedBody:'Complete the previous lesson first to unlock this one.', backToCourse:'Back to the track page'
     },
     pg:{
       title:'Playground', sub:'Write JavaScript and run it right here. Results show in the console.',
@@ -75,8 +94,7 @@ window.I18N = {
     },
     credits:{title:'Credits and sources', fonts:'Fonts', fontsNote:'Open-source fonts from Google Fonts, bundled locally to work offline.',
       fontsList:'Cairo (OFL) for headings — IBM Plex Sans Arabic (OFL) for body — JetBrains Mono (OFL) for code.',
-      media:'Media', mediaNote:'Track covers are SVG illustrations generated in code for this project; no photographs.',
-      tech:'Technical', techNote:'Fully frontend site: pure HTML, CSS and JavaScript with no server. State is saved in your browser only (localStorage).'},
+      demo:'A demo', demoNote:'Satr is a demo platform: lessons and video clips are sample content showing how the platform works, and progress is stored on the visitor\'s device only.'},
     footer:{made:'Made by Zaynab Abu Twyla', rights:'Satr — learn to code, line by line.'},
     a11y:{menu:'Menu', theme:'Toggle theme', lang:'العربية'}
   }
